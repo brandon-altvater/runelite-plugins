@@ -65,4 +65,16 @@ public interface WintertodtNotificationsConfig extends Config
     {
         return false;
     }
+
+    @Range(min = 0)
+    @ConfigItem(
+            keyName = "notificationPointThreshold",
+            name = "Stop notifying at points",
+            description = "Stop all plugin notifications at or above this round's points. Set to 0 to disable; use 500 for the minimum reward points.",
+            position = 5
+    )
+    default int notificationPointThreshold()
+    {
+        return 0;
+    }
 }

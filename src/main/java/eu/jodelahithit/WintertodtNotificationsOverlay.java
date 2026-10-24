@@ -75,6 +75,11 @@ class WintertodtNotificationsOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
+        if (plugin.isPointThresholdReached()) {
+            reset();
+            return null;
+        }
+
         boolean targetVisible = plugin.shouldRenderOverlay();
 
         Color configuredColor = config.overlayColor();

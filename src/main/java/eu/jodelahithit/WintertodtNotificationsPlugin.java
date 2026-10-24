@@ -13,12 +13,15 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.Notifier;
+import net.runelite.api.widgets.Widget;
+import net.runelite.client.util.Text;
 
 
 import static eu.jodelahithit.WintertodtInterruptType.*;
 
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.VarbitID;
 
@@ -216,7 +219,7 @@ public class WintertodtNotificationsPlugin extends Plugin {
 
         WintertodtActivity interruptedActivity = currentActivity;
 
-        if (interruptType.hasNotificationText()) {
+        if (interruptType.hasNotificationText() && !isPointThresholdReached()) {
             String message = interruptType.getNotificationText() + " stopped " + interruptedActivity.getDisplayName();
 
             if (config.showInterruptionText()) {
@@ -336,6 +339,27 @@ public class WintertodtNotificationsPlugin extends Plugin {
     }
 
     public boolean shouldRenderOverlay() {
-        return isInWintertodt && currentActivity == WintertodtActivity.IDLE && timerValue == 0 && ticksSinceMovement >= MOVEMENT_COOLDOWN_TICKS;
+        return isInWintertodt && currentActivity == WintertodtActivity.IDLE && timerValue == 0 && ticksSinceMovement >= MOVEMENT_COOLDOWN_TICKS
+                && !isPointThresholdReached();
+    }
+
+    boolean isPointThresholdReached() {
+        int threshold = config.notificationPointThreshold();
+        if (!isInWintertodt || threshold <= 0) {
+            return false;
+        }
+
+        Widget pointsWidget = client.getWidget(InterfaceID.WintStatus.POINTS);
+        if (pointsWidget == null || pointsWidget.getText() == null) {
+            return false;
+        }
+
+        // The game's points widget includes a label, line break and color tags.
+        String points = Text.removeTags(pointsWidget.getText()).replaceAll("[^0-9]", "");
+        try {
+            return Integer.parseInt(points) >= threshold;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
     }
 }
